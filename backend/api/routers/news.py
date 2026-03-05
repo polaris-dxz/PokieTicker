@@ -1,28 +1,9 @@
-from pathlib import Path
-
 from fastapi import APIRouter, Query
 from typing import Optional
 
 from backend.database import get_conn
 
 router = APIRouter()
-
-IMAGES_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "images"
-
-
-def _add_thumbnail_url(rows):
-    """Add thumbnail_url field if local thumbnail exists."""
-    result = []
-    for r in rows:
-        d = dict(r)
-        news_id = d.get("news_id", "")
-        thumb_file = f"{news_id[:40]}.jpg"
-        if (IMAGES_DIR / thumb_file).exists():
-            d["thumbnail_url"] = f"/api/images/{thumb_file}"
-        else:
-            d["thumbnail_url"] = None
-        result.append(d)
-    return result
 
 
 @router.get("/{symbol}")
@@ -66,7 +47,7 @@ def get_news_for_date(
         ).fetchall()
 
     conn.close()
-    return _add_thumbnail_url(rows)
+    return [dict(r) for r in rows]
 
 
 @router.get("/{symbol}/range")
@@ -94,7 +75,7 @@ def get_news_for_range(
     ).fetchall()
     conn.close()
 
-    articles = _add_thumbnail_url(rows)
+    articles = [dict(r) for r in rows]
 
     # Build top bullish / bearish lists
     top_bullish = sorted(

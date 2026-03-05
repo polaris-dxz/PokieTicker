@@ -10,7 +10,6 @@ interface NewsItem {
   publisher: string;
   article_url: string;
   image_url: string | null;
-  thumbnail_url: string | null;
   relevance: string | null;
   key_discussion: string | null;
   chinese_summary: string | null;

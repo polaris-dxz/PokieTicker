@@ -10,7 +10,6 @@ interface NewsItem {
   publisher: string;
   article_url: string;
   image_url: string | null;
-  thumbnail_url: string | null;
   relevance: string | null;
   key_discussion: string | null;
   sentiment: string | null;
@@ -156,10 +155,10 @@ export default function NewsPanel({ symbol, hoveredDate, onFindSimilar, highligh
                   </a>
                 </div>
 
-                {(item.thumbnail_url || item.image_url) && (
+                {item.image_url && (
                   <div className="news-image-wrap">
                     <img
-                      src={item.thumbnail_url || item.image_url!}
+                      src={item.image_url}
                       alt=""
                       className="news-image"
                       loading="lazy"
