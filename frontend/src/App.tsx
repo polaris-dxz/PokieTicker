@@ -55,17 +55,18 @@ function App() {
 
   useEffect(() => {
     axios
-      .get('/api/stocks')
+      .get<{ symbol: string; last_ohlc_fetch: string | null }[]>('/api/stocks')
       .then((res) => {
         const tickers = res.data
-          .filter((t: any) => t.last_ohlc_fetch)
-          .map((t: any) => t.symbol);
+          .filter((t) => t.last_ohlc_fetch)
+          .map((t) => t.symbol);
         setActiveTickers(tickers);
         if (tickers.length > 0 && !selectedSymbol) {
           setSelectedSymbol(tickers[0]);
         }
       })
       .catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- load ticker list once on mount
   }, []);
 
   // Update chartRect when range is selected (for popup positioning)
@@ -205,7 +206,7 @@ function App() {
         <NewsPanel
           symbol={selectedSymbol}
           hoveredDate={effectiveDate}
-          onFindSimilar={(_newsId: string) => {
+          onFindSimilar={() => {
             if (effectiveDate) handleDayClick(effectiveDate);
           }}
           highlightedNewsId={selectedArticle?.newsId || null}
@@ -255,8 +256,8 @@ function App() {
           </div>
         ) : null}
         <div className="header-right">
-          <a href="https://mitrui.com" target="_blank" rel="noopener noreferrer" className="header-link">
-            mitrui.com
+          <a href="https://xizhi.dev" target="_blank" rel="noopener noreferrer" className="header-link">
+            xizhi.dev
           </a>
           <a href="https://github.com/owengetinfo-design/PokieTicker" target="_blank" rel="noopener noreferrer" className="header-link header-github">
             <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
