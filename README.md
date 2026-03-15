@@ -51,7 +51,7 @@ Frontend (React + Vite + D3.js)          Backend (FastAPI + SQLite)
 |  +- news dots on each date      |----->|  /api/news/{sym}?date=     |
 |  +- crosshair + click to lock   |      |  /api/news/{sym}/categories|
 |                                  |      |                            |
-|  NewsPanel (right sidebar)       |<-----|  SQLite: pokieticker.db    |
+|  NewsPanel (right sidebar)       |<-----|  SQLite: .data/pokieticker.db |
 |  +- sentiment sorted             |      |  +- ohlc (51K+ rows)      |
 |  +- up/down reasons              |      |  +- news_raw (61K+)       |
 |  +- T+1/T+5 returns              |      |  +- layer1_results (97K+) |
@@ -72,9 +72,9 @@ Polygon API --> Layer 0 (rule filter) --> Layer 1 (Haiku Batch API) --> Layer 2 
 
 ## Quick Start
 
-> 想**免费部署到公网**？见 [docs/deploy-free.md](docs/deploy.md)（Render / Fly.io / 自建）。
+> 想**免费部署到公网**？见 [docs/deploy.md](docs/deploy.md)（Render / Fly.io / 自建）。
 
-The repo includes a pre-built database (`pokieticker.db`) with historical data, so you can run it immediately — **no API keys needed**.
+The repo includes a pre-built database (`.data/pokieticker.db` or `pokieticker.db.gz`) with historical data, so you can run it immediately — **no API keys needed**.
 
 ### Option A: Install script (uv + pnpm)
 
@@ -84,7 +84,7 @@ Requires [uv](https://docs.astral.sh/uv/) and [pnpm](https://pnpm.io/) installed
 git clone https://github.com/owengetinfo-design/PokieTicker.git
 cd PokieTicker
 ./install.sh           # install only
-./install.sh --start   # install and start both backend + frontend
+./install.sh --start   # install and start both server + app
 ```
 
 Then open **http://localhost:7777/PokieTicker/** (if you used `--start`).
@@ -95,24 +95,24 @@ Then open **http://localhost:7777/PokieTicker/** (if you used `--start`).
 git clone https://github.com/owengetinfo-design/PokieTicker.git
 cd PokieTicker
 
-# Unpack the pre-built database
-gunzip -k pokieticker.db.gz
+# Unpack the pre-built database (into .data/)
+mkdir -p .data && (test -f pokieticker.db.gz && gunzip -k -c pokieticker.db.gz > .data/pokieticker.db || true)
 
-# Backend (Python 3.10+) with uv
+# Server (Python 3.10+) with uv
 uv venv && uv pip install -r requirements.txt
 
-# Frontend (Node.js 18+) with pnpm
-cd frontend && pnpm install && cd ..
+# App (Node.js 18+) with pnpm
+cd app && pnpm install && cd ..
 ```
 
 Then start both services (in two terminal windows):
 
 ```bash
-# Terminal 1: Backend
-uv run uvicorn backend.api.main:app --reload
+# Terminal 1: Server
+uv run uvicorn server.api.main:app --reload
 
-# Terminal 2: Frontend
-cd frontend && pnpm run dev
+# Terminal 2: App
+cd app && pnpm run dev
 ```
 
 Open **http://localhost:7777/PokieTicker/** and you're done.
@@ -135,22 +135,22 @@ cp .env.example .env
 
 ```bash
 # Fetch new OHLC + news
-python -m backend.bulk_fetch
+python -m server.bulk_fetch
 
 # Run AI analysis
-python -m backend.batch_submit --top 50
-python -m backend.batch_collect <batch_id>
+python -m server.batch_submit --top 50
+python -m server.batch_collect <batch_id>
 ```
 
 ## Project Structure
 
 ```
 .env                          # API keys (gitignored)
-pokieticker.db                # SQLite database (gitignored)
+.data/                        # Data directory (db, models, cache; gitignored)
 requirements.txt              # Python dependencies
 
-backend/
-  config.py                   # pydantic-settings, loads .env
+server/                       # Python package (API + pipeline + ML)
+  config.py                   # pydantic-settings, .data paths, .env
   database.py                 # 9-table SQLite schema
   bulk_fetch.py               # Bulk download OHLC + news for many tickers
   batch_submit.py             # Submit Layer 1 to Anthropic Batch API
@@ -179,7 +179,7 @@ backend/
       pipeline.py             # POST /api/pipeline/fetch, /process
       predict.py              # GET /api/predict/{sym}/forecast
 
-frontend/
+app/                          # UI (React + Vite; shared by web and future desktop)
   src/
     App.tsx                   # Main layout (chart + panels)
     components/
@@ -196,11 +196,11 @@ frontend/
 
 ```bash
 # Fetch new OHLC + news since last update
-python -m backend.weekly_update
+python -m server.weekly_update
 
 # Run AI analysis on new articles
-python -m backend.batch_submit --top 50
-python -m backend.batch_collect <batch_id>
+python -m server.batch_submit --top 50
+python -m server.batch_collect <batch_id>
 ```
 
 ## Cost Summary
@@ -214,8 +214,8 @@ python -m backend.batch_collect <batch_id>
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, Vite, D3.js
-- **Backend**: FastAPI, SQLite (WAL mode), Pydantic
+- **App (UI)**: React, TypeScript, Vite, D3.js
+- **Server**: FastAPI, SQLite (WAL mode), Pydantic
 - **AI**: Claude Haiku 4.5 (batch sentiment), Claude Sonnet (deep analysis)
 - **ML**: XGBoost (prediction), cosine similarity (pattern matching)
 - **Data**: Polygon.io REST API

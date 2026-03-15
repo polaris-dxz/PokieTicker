@@ -133,9 +133,9 @@ layer2 (Sonnet，点击时) → layer2_results (discussion, growth/decrease_reas
 
 ### 4.2 训练
 
-- **入口**：`python -m backend.ml.train [--symbol SYM] [--backtest] [--lstm]`（`ml/train.py`）。
+- **入口**：`python -m server.ml.train [--symbol SYM] [--backtest] [--lstm]`（`server/ml/train.py`）。
 - **逻辑**：对每个 symbol（或全库），对 horizon `t1`、`t5` 各训练一个 XGBoost 二分类模型；时间序列划分（如 80% 训练 / 20% 测试），评估 accuracy、baseline、precision/recall/F1；可选跑 backtest、可选训练 LSTM（部分标的）。
-- **输出**：`backend/ml/models/{SYMBOL}_t1.joblib`、`{SYMBOL}_t1_meta.json`（及 t5、部分 LSTM）。没有这些文件时，预测接口会返回 404（见下文）。
+- **输出**：`.data/models/{SYMBOL}_t1.joblib`、`{SYMBOL}_t1_meta.json`（及 t5、部分 LSTM）。没有这些文件时，预测接口会返回 404（见下文）。
 
 ### 4.3 推理与预测接口
 
@@ -149,7 +149,7 @@ layer2 (Sonnet，点击时) → layer2_results (discussion, growth/decrease_reas
   6. **结论文案**：根据新闻汇总、模型预测、相似区间统计拼一段英文结论（无额外 API 调用）。
 - **返回**：JSON 含 `news_summary`、`prediction`（t1/t5 等）、`similar_periods`、`similar_stats`、`conclusion` 等。若中间任一步失败（无特征/无模型），则返回 `error`，路由层转为 404。
 
-因此，**预测 404 = 该标的没有训练好的模型**，需要先执行 `python -m backend.ml.train --symbol AAPL`（或全量 train）。
+因此，**预测 404 = 该标的没有训练好的模型**，需要先执行 `python -m server.ml.train --symbol AAPL`（或全量 train）。
 
 ### 4.4 ML 流程小结
 

@@ -1,24 +1,27 @@
 # Environment variables (contains API keys)
 .env
 
-# Database (pokieticker.db.gz included in repo for quick start)
+# Data directory (db, models, cache); .gitkeep is tracked
+.data/*
+!.data/.gitkeep
+
+# Legacy / root-level DB files
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
 *.db.backup
 
-# ML models
+# ML models / cache (also under .data)
 *.joblib
 *.pkl
 *.pickle
-backend/ml/models/
 
 # Raw data
 data/
 
 # Stock images (too large for git)
-backend/static/images/
+server/static/images/
 
 # Python
 __pycache__/
@@ -33,10 +36,10 @@ build/
 venv/
 env/
 
-# Node / Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
+# Node / App (UI)
+app/node_modules/
+app/dist/
+app/.vite/
 
 # Logs
 logs/

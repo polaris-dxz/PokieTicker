@@ -1,0 +1,58 @@
+{
+  "symbol": "AAPL",
+  "horizon": "t1",
+  "accuracy": 0.5702,
+  "baseline": 0.5263,
+  "precision": 0.5775,
+  "recall": 0.6833,
+  "f1": 0.626,
+  "train_size": 452,
+  "test_size": 114,
+  "train_start": "2023-11-28",
+  "train_end": "2025-09-17",
+  "test_start": "2025-09-18",
+  "test_end": "2026-03-03",
+  "top_features": [
+    {
+      "name": "day_of_week",
+      "importance": 0.0392
+    },
+    {
+      "name": "ret_1d",
+      "importance": 0.038
+    },
+    {
+      "name": "positive_ratio_3d",
+      "importance": 0.0379
+    },
+    {
+      "name": "positive_ratio",
+      "importance": 0.0362
+    },
+    {
+      "name": "negative_ratio_3d",
+      "importance": 0.0359
+    },
+    {
+      "name": "ret_5d",
+      "importance": 0.0341
+    },
+    {
+      "name": "negative_ratio_5d",
+      "importance": 0.034
+    },
+    {
+      "name": "sentiment_score_5d",
+      "importance": 0.0337
+    },
+    {
+      "name": "volume_ratio_5d",
+      "importance": 0.033
+    },
+    {
+      "name": "rsi_14",
+      "importance": 0.0328
+    }
+  ],
+  "trained_at": "2026-03-15T23:48:19.397546"
+}
