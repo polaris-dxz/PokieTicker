@@ -197,18 +197,30 @@ export default function PredictionPanel({ symbol }: Props) {
 
   useEffect(() => {
     if (!symbol) return;
-    setLoading(true);
-    setError('');
+    let cancelled = false;
+    // Defer initial state updates to avoid synchronous setState in effect (cascading renders)
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setLoading(true);
+        setError('');
+      }
+    });
     Promise.all([
       axios.get(`/api/predict/${symbol}/forecast?window=7`).then((res) => res.data as Forecast).catch(() => null),
       axios.get(`/api/predict/${symbol}/forecast?window=30`).then((res) => res.data as Forecast).catch(() => null),
     ])
       .then(([f7, f30]) => {
+        if (cancelled) return;
         setForecast7(f7);
         setForecast30(f30);
         if (!f7 && !f30) setError('No model available');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [symbol]);
 
   const keywords = useMemo(() => {
