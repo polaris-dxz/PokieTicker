@@ -72,6 +72,8 @@ Polygon API --> Layer 0 (rule filter) --> Layer 1 (Haiku Batch API) --> Layer 2 
 
 ## Quick Start
 
+> 想**免费部署到公网**？见 [docs/deploy-free.md](docs/deploy.md)（Render / Fly.io / 自建）。
+
 The repo includes a pre-built database (`pokieticker.db`) with historical data, so you can run it immediately — **no API keys needed**.
 
 ### Option A: Install script (uv + pnpm)
