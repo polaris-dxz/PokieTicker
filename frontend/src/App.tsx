@@ -225,7 +225,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-left">
-          <h1>PokieTicker</h1>
+          <h1>XiZhi</h1>
         </div>
         <StockSelector
           activeTickers={activeTickers}
