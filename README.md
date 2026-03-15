@@ -74,6 +74,21 @@ Polygon API --> Layer 0 (rule filter) --> Layer 1 (Haiku Batch API) --> Layer 2 
 
 The repo includes a pre-built database (`pokieticker.db`) with historical data, so you can run it immediately — **no API keys needed**.
 
+### Option A: Install script (uv + pnpm)
+
+Requires [uv](https://docs.astral.sh/uv/) and [pnpm](https://pnpm.io/) installed.
+
+```bash
+git clone https://github.com/owengetinfo-design/PokieTicker.git
+cd PokieTicker
+./install.sh           # install only
+./install.sh --start   # install and start both backend + frontend
+```
+
+Then open **http://localhost:7777/PokieTicker/** (if you used `--start`).
+
+### Option B: Manual setup
+
 ```bash
 git clone https://github.com/owengetinfo-design/PokieTicker.git
 cd PokieTicker
@@ -81,24 +96,21 @@ cd PokieTicker
 # Unpack the pre-built database
 gunzip -k pokieticker.db.gz
 
-# Backend (Python 3.10+)
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+# Backend (Python 3.10+) with uv
+uv venv && uv pip install -r requirements.txt
 
-# Frontend (Node.js 18+)
-cd frontend && npm install && cd ..
+# Frontend (Node.js 18+) with pnpm
+cd frontend && pnpm install && cd ..
 ```
 
 Then start both services (in two terminal windows):
 
 ```bash
 # Terminal 1: Backend
-source venv/bin/activate
-uvicorn backend.api.main:app --reload
+uv run uvicorn backend.api.main:app --reload
 
 # Terminal 2: Frontend
-cd frontend && npm run dev
+cd frontend && pnpm run dev
 ```
 
 Open **http://localhost:7777/PokieTicker/** and you're done.
