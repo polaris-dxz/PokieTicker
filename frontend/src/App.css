@@ -2471,11 +2471,12 @@ body {
 /* ===== Responsive — Phone ===== */
 @media (max-width: 480px) {
   .app-main {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 35vh 1fr;
+    grid-template-columns: 1fr;
+    grid-template-rows: 30vh auto 1fr;
     grid-template-areas:
-      "chart      chart"
-      "news       prediction";
+      "chart"
+      "prediction"
+      "news";
   }
   .app-header {
     padding: 2px 6px;
@@ -2508,13 +2509,65 @@ body {
     font-size: 13px;
   }
   .news-area {
-    border-right: 1px solid #2a2d3a;
-    border-bottom: none;
+    border-right: none;
+    border-top: 1px solid #2a2d3a;
     min-height: 0;
   }
   .prediction-area {
-    min-height: 0;
+    border-bottom: 1px solid #2a2d3a;
+    max-height: 35vh;
     overflow-y: auto;
+  }
+  /* Compact prediction panel on phone */
+  .pred-header {
+    padding: 6px 10px;
+  }
+  .pred-title {
+    font-size: 13px;
+  }
+  .pred-tab {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  .fc-header {
+    padding: 8px 10px;
+  }
+  .fc-direction-icon {
+    font-size: 18px;
+  }
+  .fc-direction-label {
+    font-size: 14px;
+  }
+  .fc-news-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .fc-confidence {
+    font-size: 22px;
+  }
+  .fc-section-title {
+    font-size: 12px;
+  }
+  .fc-conclusion {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .fc-impact-title {
+    font-size: 12px;
+  }
+  .fc-impact-summary {
+    font-size: 11px;
+  }
+  .keyword-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+  /* Similar periods table compact */
+  .sim-table {
+    font-size: 11px;
+  }
+  .sim-table th, .sim-table td {
+    padding: 3px 4px;
   }
   .news-category-bar {
     grid-template-columns: 1fr 1fr 1fr;
@@ -2526,30 +2579,30 @@ body {
     gap: 4px;
   }
   .category-tag-icon {
-    font-size: 18px;
+    font-size: 16px;
   }
   .category-tag-label {
-    font-size: 14px;
-  }
-  .category-tag-count {
     font-size: 12px;
   }
+  .category-tag-count {
+    font-size: 10px;
+  }
   .news-panel-header {
-    padding: 10px 12px;
+    padding: 8px 10px;
   }
   .news-panel-header h2 {
-    font-size: 17px;
+    font-size: 16px;
   }
   .news-card {
-    padding: 12px;
+    padding: 10px;
   }
   .news-title {
-    font-size: 15px;
+    font-size: 14px;
   }
   .news-summary {
-    font-size: 13px;
+    font-size: 12px;
   }
   .reason {
-    font-size: 13px;
+    font-size: 12px;
   }
 }

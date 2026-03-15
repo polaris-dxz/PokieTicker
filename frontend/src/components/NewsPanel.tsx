@@ -116,7 +116,7 @@ export default function NewsPanel({ symbol, hoveredDate, onFindSimilar, highligh
         <div className="news-panel-header">
           <h2>News</h2>
         </div>
-        <div className="news-empty">Hover over the chart to see news</div>
+        <div className="news-empty">Tap on a chart dot to see news</div>
       </div>
     );
   }
