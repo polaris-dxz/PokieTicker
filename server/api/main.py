@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from server.config import PROJECT_ROOT
 from server.database import init_db
-from server.api.routers import stocks, news, analysis, predict
+from server.api.routers import stocks, news, analysis, predict, pipeline
 
 app = FastAPI(title="PokieTicker", version="1.0.0")
 
@@ -23,6 +23,7 @@ app.include_router(stocks.router, prefix="/api/stocks", tags=["stocks"])
 app.include_router(news.router, prefix="/api/news", tags=["news"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["analysis"])
 app.include_router(predict.router, prefix="/api/predict", tags=["predict"])
+app.include_router(pipeline.router, prefix="/api/pipeline", tags=["pipeline"])
 
 
 @app.on_event("startup")

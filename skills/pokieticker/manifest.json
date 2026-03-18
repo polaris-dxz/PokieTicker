@@ -1,0 +1,87 @@
+{
+  "name": "pokieticker",
+  "version": "1.0.0",
+  "description": "Query PokieTicker for stock tickers, OHLC, news, categories, and ML forecasts.",
+  "schema": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "list_tickers",
+        "search_tickers",
+        "ohlc",
+        "news",
+        "news_range",
+        "news_categories",
+        "forecast",
+        "prediction",
+        "backtest",
+        "similar_days",
+        "story",
+        "range_local",
+        "update_data",
+        "fetch_data",
+        "process_data",
+        "submit_layer1",
+        "batch_status"
+      ],
+      "description": "Which PokieTicker API to call."
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Stock symbol (e.g. AAPL). Required for ohlc, news, news_range, news_categories, forecast, prediction, backtest, similar_days, story, range_local, fetch_data, process_data."
+    },
+    "q": {
+      "type": "string",
+      "description": "Search query for search_tickers."
+    },
+    "date": {
+      "type": "string",
+      "description": "Trading date YYYY-MM-DD. Used by news (filter by date) and similar_days (reference date)."
+    },
+    "start": {
+      "type": "string",
+      "description": "Start date YYYY-MM-DD for ohlc or news_range."
+    },
+    "end": {
+      "type": "string",
+      "description": "End date YYYY-MM-DD for ohlc or news_range."
+    },
+    "window": {
+      "type": "number",
+      "description": "Forecast window in days (3-60, default 7) for forecast."
+    },
+    "horizon": {
+      "type": "string",
+      "enum": ["t1", "t5"],
+      "description": "Prediction horizon for prediction and backtest."
+    },
+    "top_k": {
+      "type": "number",
+      "description": "Number of similar days to return (1-30, default 10) for similar_days."
+    },
+    "start_date": {
+      "type": "string",
+      "description": "Start date YYYY-MM-DD for range_local."
+    },
+    "end_date": {
+      "type": "string",
+      "description": "End date YYYY-MM-DD for range_local."
+    },
+    "full": {
+      "type": "boolean",
+      "description": "For update_data: true = full fetch (all history), false = incremental (default)."
+    },
+    "batch_size": {
+      "type": "number",
+      "description": "For process_data: max articles to process per symbol (default 1000)."
+    },
+    "top": {
+      "type": "number",
+      "description": "For submit_layer1: top N tickers to include (1-200, default 50)."
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "For batch_status: Anthropic Batch API job id (returned by submit_layer1)."
+    }
+  }
+}

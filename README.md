@@ -133,6 +133,17 @@ cp .env.example .env
 | `POLYGON_API_KEY` | [polygon.io](https://polygon.io/) | Free tier |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/) | Pay-as-you-go |
 
+一键更新（推荐）：
+
+```bash
+./update_data.sh           # 增量更新 OHLC + 新闻
+./update_data.sh --full    # 全量拉取
+./update_data.sh --layer1  # 增量 + 提交 Layer 1 Batch（终端会打印 batch_id，再执行 batch_collect）
+./update_data.sh --full --layer1
+```
+
+或手动执行：
+
 ```bash
 # Fetch new OHLC + news
 python -m server.bulk_fetch
@@ -179,6 +190,11 @@ server/                       # Python package (API + pipeline + ML)
       pipeline.py             # POST /api/pipeline/fetch, /process
       predict.py              # GET /api/predict/{sym}/forecast
 
+skills/                      # OpenClaw skills（可选）
+  pokieticker/               # 查询标的、OHLC、新闻、预测等
+    manifest.json
+    index.mjs
+
 app/                          # UI (React + Vite; shared by web and future desktop)
   src/
     App.tsx                   # Main layout (chart + panels)
@@ -192,15 +208,15 @@ app/                          # UI (React + Vite; shared by web and future deskt
       StockSelector.tsx       # Ticker search + tabs
 ```
 
+## OpenClaw Skill
+
+可将 PokieTicker 作为 [OpenClaw](https://github.com/OpenClaw/OpenClaw) 的 Skill 使用，通过 `action` 调用列表、OHLC、新闻、分类、预测等接口。安装与配置见 [skills/pokieticker/README.md](skills/pokieticker/README.md)；在 OpenClaw 的 Secrets 中设置 `POKIETICKER_BASE_URL`（默认 `http://localhost:8000`）即可指定后端地址。
+
 ## Weekly Update
 
 ```bash
-# Fetch new OHLC + news since last update
-python -m server.weekly_update
-
-# Run AI analysis on new articles
-python -m server.batch_submit --top 50
-python -m server.batch_collect <batch_id>
+./update_data.sh           # 增量更新（等价于 weekly_update）
+./update_data.sh --layer1  # 再提交 Layer 1，按终端提示执行 batch_collect <batch_id>
 ```
 
 ## Cost Summary

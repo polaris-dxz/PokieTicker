@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timedelta, timezone
@@ -27,6 +27,57 @@ class FetchRequest(BaseModel):
 class ProcessRequest(BaseModel):
     symbol: str
     batch_size: int = 1000
+
+
+class UpdateAllRequest(BaseModel):
+    full: bool = False
+
+
+class SubmitLayer1Request(BaseModel):
+    top: int = 50
+
+
+def _run_update_all(full: bool):
+    """Run bulk_fetch (full) or weekly_update (incremental) in background."""
+    try:
+        if full:
+            from server.bulk_fetch import main as bulk_main
+            bulk_main()
+        else:
+            from server.weekly_update import main as weekly_main
+            weekly_main()
+    except Exception:
+        logger.exception("update-all task failed")
+
+
+@router.post("/update-all")
+def update_all(req: UpdateAllRequest, background_tasks: BackgroundTasks):
+    """Trigger full or incremental data update for all tickers (OHLC + news, alignment, layer0)."""
+    background_tasks.add_task(_run_update_all, req.full)
+    return {
+        "status": "started",
+        "mode": "full" if req.full else "incremental",
+        "message": "Background update started. Check server logs for progress.",
+    }
+
+
+@router.post("/submit-layer1")
+def submit_layer1(req: SubmitLayer1Request):
+    """Submit Layer 1 (sentiment) batch to Anthropic Batch API for top N tickers. Returns batch_id for status/collect."""
+    try:
+        from server.batch_submit import get_top_tickers, build_batch_requests, submit_batch
+    except ImportError as e:
+        raise HTTPException(status_code=500, detail=f"batch_submit unavailable: {e}")
+
+    top_n = max(1, min(200, req.top))
+    tickers = get_top_tickers(top_n)
+    symbols = [t["symbol"] for t in tickers]
+    requests_list, mapping = build_batch_requests(symbols)
+    if not requests_list:
+        return {"batch_id": None, "message": "No pending articles to process."}
+    batch_id = submit_batch(requests_list, mapping)
+    total_articles = sum(len(v[1]) for v in mapping.values())
+    return {"batch_id": batch_id, "total_articles": total_articles, "tickers": len(symbols)}
 
 
 @router.post("/fetch")
