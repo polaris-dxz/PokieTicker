@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface Ticker {
   symbol: string;
@@ -30,6 +31,7 @@ const GROUPS: Record<string, string[]> = {
 };
 
 export default function StockSelector({ activeTickers, selectedSymbol, onSelect, onAdd }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Ticker[]>([]);
   const [showSearch, setShowSearch] = useState(false);
@@ -143,7 +145,7 @@ export default function StockSelector({ activeTickers, selectedSymbol, onSelect,
       <div className="search-wrapper" ref={searchRef}>
         <input
           type="text"
-          placeholder="Search..."
+          placeholder={t('stock.searchPlaceholder')}
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           onFocus={() => results.length > 0 && setShowSearch(true)}

@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface RangeSelection {
   startDate: string;
@@ -16,13 +17,12 @@ interface Props {
   onClose: () => void;
 }
 
-const PRESET_QUESTIONS = [
-  "What's driving the price movement?",
-  "Summarize key news in this period",
-  "What are the bull/bear factors?",
-];
-
 export default function RangeQueryPopup({ range, chartRect, onAsk, onClose }: Props) {
+  const { t } = useTranslation();
+  const presetQuestions = useMemo(
+    () => [t('rangePopup.preset1'), t('rangePopup.preset2'), t('rangePopup.preset3')],
+    [t]
+  );
   const [custom, setCustom] = useState('');
   const popupRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,9 +66,9 @@ export default function RangeQueryPopup({ range, chartRect, onAsk, onClose }: Pr
         </span>
       </div>
 
-      <div className="range-popup-label">Ask PokieTicker</div>
+      <div className="range-popup-label">{t('rangePopup.askLabel')}</div>
 
-      {PRESET_QUESTIONS.map((q) => (
+      {presetQuestions.map((q) => (
         <button
           key={q}
           className="range-popup-preset"
@@ -89,7 +89,7 @@ export default function RangeQueryPopup({ range, chartRect, onAsk, onClose }: Pr
         <input
           ref={inputRef}
           type="text"
-          placeholder="Ask your own question..."
+          placeholder={t('rangePopup.placeholder')}
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
         />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface NewsItem {
   news_id: string;
@@ -49,6 +50,7 @@ function pct(v: number | null) {
 }
 
 export default function NewsPanel({ symbol, hoveredDate, onFindSimilar, highlightedNewsId, isLocked, onUnlock, highlightedCategoryIds }: Props) {
+  const { t } = useTranslation();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [displayDate, setDisplayDate] = useState<string | null>(null);
@@ -114,9 +116,9 @@ export default function NewsPanel({ symbol, hoveredDate, onFindSimilar, highligh
     return (
       <div className="news-panel">
         <div className="news-panel-header">
-          <h2>News</h2>
+          <h2>{t('news.title')}</h2>
         </div>
-        <div className="news-empty">Tap on a chart dot to see news</div>
+        <div className="news-empty">{t('news.emptyHint')}</div>
       </div>
     );
   }
@@ -124,20 +126,20 @@ export default function NewsPanel({ symbol, hoveredDate, onFindSimilar, highligh
   return (
     <div className="news-panel">
       <div className="news-panel-header">
-        <h2>News</h2>
+        <h2>{t('news.title')}</h2>
         <span className="news-date-badge">{displayDate}</span>
-        <span className="news-count">{news.length} articles</span>
+        <span className="news-count">{t('news.articleCount', { count: news.length })}</span>
         {isLocked && (
-          <button className="lock-badge" onClick={onUnlock} title="Click to unlock">
-            Locked
+          <button className="lock-badge" onClick={onUnlock} title={t('news.clickUnlock')}>
+            {t('news.locked')}
           </button>
         )}
       </div>
 
       {loading && news.length === 0 ? (
-        <div className="news-empty">Loading...</div>
+        <div className="news-empty">{t('news.loading')}</div>
       ) : news.length === 0 ? (
-        <div className="news-empty">No news for this date</div>
+        <div className="news-empty">{t('news.noNewsDate')}</div>
       ) : (
         <div className="news-list" ref={listRef}>
           {news.map((item) => {
@@ -196,7 +198,7 @@ export default function NewsPanel({ symbol, hoveredDate, onFindSimilar, highligh
                         className="find-similar-btn"
                         onClick={(e) => { e.stopPropagation(); onFindSimilar(item.news_id); }}
                       >
-                        Find Similar
+                        {t('news.findSimilar')}
                       </button>
                     )}
                   </div>

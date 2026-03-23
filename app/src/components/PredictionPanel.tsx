@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface Driver {
   name: string;
@@ -185,6 +186,7 @@ function renderStyledText(text: string): React.ReactNode[] {
 }
 
 export default function PredictionPanel({ symbol }: Props) {
+  const { t } = useTranslation();
   const [forecast7, setForecast7] = useState<Forecast | null>(null);
   const [forecast30, setForecast30] = useState<Forecast | null>(null);
   const [loading, setLoading] = useState(false);
@@ -213,7 +215,7 @@ export default function PredictionPanel({ symbol }: Props) {
         if (cancelled) return;
         setForecast7(f7);
         setForecast30(f30);
-        if (!f7 && !f30) setError('No model available');
+        if (!f7 && !f30) setError(t('pred.noModel'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -221,7 +223,7 @@ export default function PredictionPanel({ symbol }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [symbol]);
+  }, [symbol, t]);
 
   const keywords = useMemo(() => {
     const fc = forecast7 || forecast30;
@@ -241,9 +243,9 @@ export default function PredictionPanel({ symbol }: Props) {
     return (
       <div className="pred-panel">
         <div className="pred-header" onClick={() => setExpanded(!expanded)}>
-          <span className="pred-title">Forecast</span>
+          <span className="pred-title">{t('pred.forecast')}</span>
           <span className="pred-loading-dot" />
-          <span className="pred-loading-text">Analyzing recent news...</span>
+          <span className="pred-loading-text">{t('pred.analyzing')}</span>
         </div>
       </div>
     );
@@ -253,8 +255,8 @@ export default function PredictionPanel({ symbol }: Props) {
     return (
       <div className="pred-panel">
         <div className="pred-header">
-          <span className="pred-title">Forecast</span>
-          <span className="pred-no-model">{error || 'No data'}</span>
+          <span className="pred-title">{t('pred.forecast')}</span>
+          <span className="pred-no-model">{error || t('pred.noData')}</span>
         </div>
       </div>
     );
@@ -264,7 +266,7 @@ export default function PredictionPanel({ symbol }: Props) {
     <div className={`pred-panel ${expanded ? 'pred-expanded' : ''}`}>
       {/* Header bar */}
       <div className="pred-header" onClick={() => setExpanded(!expanded)}>
-        <span className="pred-title">Forecast</span>
+        <span className="pred-title">{t('pred.forecast')}</span>
 
         {primary && (
           <>
@@ -286,7 +288,7 @@ export default function PredictionPanel({ symbol }: Props) {
 
         {ns && (
           <span className="pred-news-badge">
-            {ns.total} news · {ns.positive}+ {ns.negative}-
+            {t('pred.newsSummary', { total: ns.total, pos: ns.positive, neg: ns.negative })}
           </span>
         )}
 
@@ -299,7 +301,7 @@ export default function PredictionPanel({ symbol }: Props) {
           {/* Keyword tags (shared, show once) */}
           {keywords.length > 0 && (
             <div className="fc-keywords-section">
-              <div className="fc-section-title">Key Topics</div>
+              <div className="fc-section-title">{t('pred.keyTopics')}</div>
               <div className="fc-keywords">
                 {keywords.map((kw) => (
                   <span key={kw} className="fc-keyword-pill">{kw}</span>
@@ -311,7 +313,7 @@ export default function PredictionPanel({ symbol }: Props) {
           {/* 7D Forecast Section */}
           {forecast7 && (
             <ForecastSection
-              label="7-Day"
+              label={t('pred.label7d')}
               forecast={forecast7}
               symbol={symbol}
               deepLoading={deepLoading}
@@ -324,7 +326,7 @@ export default function PredictionPanel({ symbol }: Props) {
           {/* 30D Forecast Section */}
           {forecast30 && (
             <ForecastSection
-              label="30-Day"
+              label={t('pred.label30d')}
               forecast={forecast30}
               symbol={symbol}
               deepLoading={deepLoading}
@@ -356,6 +358,7 @@ function ForecastSection({
   setDeepLoading: (id: string | null) => void;
   setDeepResults: React.Dispatch<React.SetStateAction<Record<string, DeepAnalysis>>>;
 }) {
+  const { t } = useTranslation();
   const t1 = forecast.prediction.t1;
   const t3 = forecast.prediction.t3;
   const t5 = forecast.prediction.t5;
@@ -370,7 +373,7 @@ function ForecastSection({
 
   return (
     <div className="fc-section-block">
-      <div className="fc-section-divider">{label} Forecast</div>
+      <div className="fc-section-divider">{label}{t('pred.forecastSuffix')}</div>
 
       {/* AI Prediction Hero */}
       {primary && (
@@ -378,7 +381,7 @@ function ForecastSection({
           <span className="fc-hero-arrow">{isUp ? '\u2191' : '\u2193'}</span>
           <div className="fc-hero-text">
             <span className="fc-hero-label">{label}:</span>
-            <span className="fc-hero-dir">{isUp ? 'Bullish' : 'Bearish'}</span>
+            <span className="fc-hero-dir">{isUp ? t('pred.bullish') : t('pred.bearish')}</span>
           </div>
           <span className="fc-hero-conf">{(primary.confidence * 100).toFixed(0)}%</span>
         </div>
@@ -387,7 +390,7 @@ function ForecastSection({
       {/* Structured analysis bullets */}
       {conclusionBullets.length > 0 && (
         <div className="fc-analysis">
-          <div className="fc-section-title">Analysis</div>
+          <div className="fc-section-title">{t('pred.analysis')}</div>
           <ul className="fc-bullet-list">
             {conclusionBullets.map((bullet, i) => (
               <li key={i} className="fc-bullet-item">{renderStyledText(bullet)}</li>
@@ -406,7 +409,7 @@ function ForecastSection({
       {/* Top Impact News */}
       {ns.top_impact && ns.top_impact.length > 0 && (
         <div className="fc-impact-section">
-          <div className="fc-section-title">Key Impact News</div>
+          <div className="fc-section-title">{t('pred.keyImpactNews')}</div>
           {ns.top_impact.map((article) => {
             const retClass = (article.ret_t0 ?? 0) >= 0 ? 'up' : 'down';
             const deep = deepResults[article.news_id];
@@ -418,7 +421,7 @@ function ForecastSection({
                     {article.ret_t0 != null ? `${article.ret_t0 >= 0 ? '+' : ''}${article.ret_t0.toFixed(2)}%` : '-'}
                   </span>
                   <span className={`fc-impact-sentiment ${article.sentiment || 'unknown'}`}>
-                    {article.sentiment === 'positive' ? 'Bullish' : article.sentiment === 'negative' ? 'Bearish' : article.sentiment === 'neutral' ? 'Neutral' : 'N/A'}
+                    {article.sentiment === 'positive' ? t('pred.sentBullish') : article.sentiment === 'negative' ? t('pred.sentBearish') : article.sentiment === 'neutral' ? t('pred.sentNeutral') : t('pred.na')}
                   </span>
                   <span className="fc-impact-date">{article.date}</span>
                 </div>
@@ -431,13 +434,13 @@ function ForecastSection({
                     <div className="fc-deep-discussion">{deep.discussion}</div>
                     {deep.growth_reasons && (
                       <div className="fc-deep-reasons fc-deep-bull">
-                        <span className="fc-deep-reasons-label">{'▲ Bullish Factors'}</span>
+                        <span className="fc-deep-reasons-label">{t('pred.bullishFactors')}</span>
                         <div className="fc-deep-reasons-text">{deep.growth_reasons}</div>
                       </div>
                     )}
                     {deep.decrease_reasons && (
                       <div className="fc-deep-reasons fc-deep-bear">
-                        <span className="fc-deep-reasons-label">{'▼ Risk Factors'}</span>
+                        <span className="fc-deep-reasons-label">{t('pred.riskFactors')}</span>
                         <div className="fc-deep-reasons-text">{deep.decrease_reasons}</div>
                       </div>
                     )}
@@ -457,7 +460,7 @@ function ForecastSection({
                         .finally(() => setDeepLoading(null));
                     }}
                   >
-                    {isAnalyzing ? 'Analyzing...' : '🔍 AI Deep Analysis'}
+                    {isAnalyzing ? t('pred.deepAnalyzing') : t('pred.deepBtn')}
                   </button>
                 )}
               </div>
@@ -469,28 +472,28 @@ function ForecastSection({
       {/* Similar historical periods */}
       {stats.count > 0 && (
         <div className="fc-similar-section">
-          <div className="fc-section-title">Similar Historical Periods ({stats.count})</div>
+          <div className="fc-section-title">{t('pred.similarPeriods', { count: stats.count })}</div>
           <div className="fc-similar-stats">
             <div className="fc-stat">
-              <span className="fc-stat-label">5D Up Rate</span>
+              <span className="fc-stat-label">{t('pred.stat5dUp')}</span>
               <span className={`fc-stat-value ${stats.up_ratio_5d > 0.5 ? 'up' : 'down'}`}>
                 {(stats.up_ratio_5d * 100).toFixed(0)}%
               </span>
             </div>
             <div className="fc-stat">
-              <span className="fc-stat-label">Avg 5D Ret</span>
+              <span className="fc-stat-label">{t('pred.avg5dRet')}</span>
               <span className={`fc-stat-value ${(stats.avg_ret_5d ?? 0) >= 0 ? 'up' : 'down'}`}>
                 {stats.avg_ret_5d != null ? `${stats.avg_ret_5d >= 0 ? '+' : ''}${stats.avg_ret_5d.toFixed(1)}%` : '-'}
               </span>
             </div>
             <div className="fc-stat">
-              <span className="fc-stat-label">10D Up Rate</span>
+              <span className="fc-stat-label">{t('pred.stat10dUp')}</span>
               <span className={`fc-stat-value ${stats.up_ratio_10d > 0.5 ? 'up' : 'down'}`}>
                 {(stats.up_ratio_10d * 100).toFixed(0)}%
               </span>
             </div>
             <div className="fc-stat">
-              <span className="fc-stat-label">Avg 10D Ret</span>
+              <span className="fc-stat-label">{t('pred.avg10dRet')}</span>
               <span className={`fc-stat-value ${(stats.avg_ret_10d ?? 0) >= 0 ? 'up' : 'down'}`}>
                 {stats.avg_ret_10d != null ? `${stats.avg_ret_10d >= 0 ? '+' : ''}${stats.avg_ret_10d.toFixed(1)}%` : '-'}
               </span>
@@ -502,19 +505,19 @@ function ForecastSection({
               <div key={i} className="fc-period-card">
                 <div className="fc-period-header">
                   <span className="fc-period-dates">{p.period_start} ~ {p.period_end}</span>
-                  <span className="fc-period-sim">{(p.similarity * 100).toFixed(0)}% match</span>
+                  <span className="fc-period-sim">{t('pred.match', { pct: (p.similarity * 100).toFixed(0) })}</span>
                 </div>
                 <div className="fc-period-detail">
-                  <span>{p.n_articles} articles</span>
-                  <span>Sentiment: {p.avg_sentiment >= 0 ? '+' : ''}{p.avg_sentiment.toFixed(2)}</span>
+                  <span>{t('pred.periodArticles', { n: p.n_articles })}</span>
+                  <span>{t('pred.sentimentLabel', { val: `${p.avg_sentiment >= 0 ? '+' : ''}${p.avg_sentiment.toFixed(2)}` })}</span>
                   {p.ret_after_5d != null && (
                     <span className={p.ret_after_5d >= 0 ? 'up' : 'down'}>
-                      5D: {p.ret_after_5d >= 0 ? '+' : ''}{p.ret_after_5d.toFixed(1)}%
+                      {t('pred.period5d')} {p.ret_after_5d >= 0 ? '+' : ''}{p.ret_after_5d.toFixed(1)}%
                     </span>
                   )}
                   {p.ret_after_10d != null && (
                     <span className={p.ret_after_10d >= 0 ? 'up' : 'down'}>
-                      10D: {p.ret_after_10d >= 0 ? '+' : ''}{p.ret_after_10d.toFixed(1)}%
+                      {t('pred.period10d')} {p.ret_after_10d >= 0 ? '+' : ''}{p.ret_after_10d.toFixed(1)}%
                     </span>
                   )}
                 </div>
@@ -528,6 +531,7 @@ function ForecastSection({
 }
 
 function PredictionCard({ label, pred }: { label: string; pred: HorizonPrediction }) {
+  const { t } = useTranslation();
   const isUp = pred.direction === 'up';
   const hasAccuracy = pred.model_accuracy != null && pred.baseline_accuracy != null;
   const lift = hasAccuracy ? (pred.model_accuracy! - pred.baseline_accuracy!) : 0;
@@ -547,7 +551,11 @@ function PredictionCard({ label, pred }: { label: string; pred: HorizonPredictio
       </div>
       {hasAccuracy && (
         <div className="fc-pred-meta">
-          Acc {(pred.model_accuracy! * 100).toFixed(1)}% / Base {(pred.baseline_accuracy! * 100).toFixed(1)}% / Lift {lift >= 0 ? '+' : ''}{(lift * 100).toFixed(1)}pp
+          {t('pred.predMeta', {
+            acc: (pred.model_accuracy! * 100).toFixed(1),
+            base: (pred.baseline_accuracy! * 100).toFixed(1),
+            lift: `${lift >= 0 ? '+' : ''}${(lift * 100).toFixed(1)}`,
+          })}
         </div>
       )}
       {pred.top_drivers.length > 0 && (

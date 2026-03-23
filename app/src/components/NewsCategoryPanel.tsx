@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from '../i18n/useTranslation';
+import type { MessageKey } from '../i18n/messages';
 
 interface CategoryInfo {
   label: string;
@@ -21,18 +23,19 @@ interface Props {
   onCategoryChange: (category: string | null, articleIds: string[], color?: string) => void;
 }
 
-const CATEGORY_META: Record<string, { icon: string; zh: string; color: string }> = {
-  market:       { icon: '📈', zh: 'Market Impact',       color: '#667eea' },
-  policy:       { icon: '🏛️', zh: 'Policy Impact',       color: '#f59e0b' },
-  earnings:     { icon: '💰', zh: 'Earnings',            color: '#10b981' },
-  product_tech: { icon: '🚀', zh: 'Product & Tech',      color: '#8b5cf6' },
-  competition:  { icon: '⚔️',  zh: 'Competition',         color: '#ef4444' },
-  management:   { icon: '👤', zh: 'Management Change',   color: '#06b6d4' },
+const CATEGORY_META: Record<string, { icon: string; labelKey: MessageKey; color: string }> = {
+  market:       { icon: '📈', labelKey: 'category.market',       color: '#667eea' },
+  policy:       { icon: '🏛️', labelKey: 'category.policy',       color: '#f59e0b' },
+  earnings:     { icon: '💰', labelKey: 'category.earnings',     color: '#10b981' },
+  product_tech: { icon: '🚀', labelKey: 'category.product_tech', color: '#8b5cf6' },
+  competition:  { icon: '⚔️',  labelKey: 'category.competition', color: '#ef4444' },
+  management:   { icon: '👤', labelKey: 'category.management',   color: '#06b6d4' },
 };
 
 type SentimentFilter = 'all' | 'positive' | 'negative';
 
 export default function NewsCategoryPanel({ symbol, activeCategory, onCategoryChange }: Props) {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Record<string, CategoryInfo>>({});
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>('all');
 
@@ -79,7 +82,9 @@ export default function NewsCategoryPanel({ symbol, activeCategory, onCategoryCh
       <div className="news-category-bar">
         {keys.map((key) => {
           const cat = categories[key];
-          const meta = CATEGORY_META[key] || { icon: '📌', zh: key, color: '#667eea' };
+          const known = CATEGORY_META[key];
+          const meta = known || { icon: '📌', labelKey: 'category.fallback' as MessageKey, color: '#667eea' };
+          const categoryLabel = known ? t(meta.labelKey) : key;
           const isActive = activeCategory === key;
           return (
             <button
@@ -101,8 +106,8 @@ export default function NewsCategoryPanel({ symbol, activeCategory, onCategoryCh
             >
               <span className="category-tag-icon">{meta.icon}</span>
               <div className="category-tag-body">
-                <span className="category-tag-label">{meta.zh}</span>
-                <span className="category-tag-count">{cat.count} {'articles'}</span>
+                <span className="category-tag-label">{categoryLabel}</span>
+                <span className="category-tag-count">{cat.count} {t('category.articlesSuffix')}</span>
               </div>
             </button>
           );
@@ -116,19 +121,19 @@ export default function NewsCategoryPanel({ symbol, activeCategory, onCategoryCh
             className={`sentiment-sub-btn ${sentimentFilter === 'all' ? 'sentiment-sub-active' : ''}`}
             onClick={() => handleSentimentClick('all')}
           >
-            {'All'} <span className="sentiment-sub-count">{activeCat.count}</span>
+            {t('sentiment.all')} <span className="sentiment-sub-count">{activeCat.count}</span>
           </button>
           <button
             className={`sentiment-sub-btn sentiment-sub-up ${sentimentFilter === 'positive' ? 'sentiment-sub-active' : ''}`}
             onClick={() => handleSentimentClick('positive')}
           >
-            {'▲ Bullish'} <span className="sentiment-sub-count">{activeCat.positive_ids.length}</span>
+            {t('sentiment.bullish')} <span className="sentiment-sub-count">{activeCat.positive_ids.length}</span>
           </button>
           <button
             className={`sentiment-sub-btn sentiment-sub-down ${sentimentFilter === 'negative' ? 'sentiment-sub-active' : ''}`}
             onClick={() => handleSentimentClick('negative')}
           >
-            {'▼ Bearish'} <span className="sentiment-sub-count">{activeCat.negative_ids.length}</span>
+            {t('sentiment.bearish')} <span className="sentiment-sub-count">{activeCat.negative_ids.length}</span>
           </button>
         </div>
       )}
