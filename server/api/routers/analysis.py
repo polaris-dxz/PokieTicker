@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+import logging
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
@@ -7,6 +9,7 @@ from server.pipeline.similarity import find_similar
 from server.database import get_conn
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class DeepAnalysisRequest(BaseModel):
@@ -84,7 +87,14 @@ def create_story(req: StoryRequest):
 def range_analysis(req: RangeAnalysisRequest):
     """Analyze price movement drivers for a date range (AI-powered, costly).
     Kept for future use — currently the frontend uses /range-local instead."""
-    return analyze_range(req.symbol.upper(), req.start_date, req.end_date, question=req.question)
+    try:
+        return analyze_range(req.symbol.upper(), req.start_date, req.end_date, question=req.question)
+    except Exception as e:
+        logger.exception("AI range analysis failed for %s %s~%s", req.symbol, req.start_date, req.end_date)
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI range analysis unavailable: {e}. Try /api/analysis/range-local.",
+        )
 
 
 @router.post("/range-local")

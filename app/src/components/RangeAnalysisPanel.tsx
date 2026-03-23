@@ -48,25 +48,32 @@ export default function RangeAnalysisPanel({ symbol, startDate, endDate, questio
     setError(null);
     setData(null);
 
-    axios
-      .post<RangeAnalysis>(
-        '/api/analysis/range',
-        { symbol, start_date: startDate, end_date: endDate, question },
-        { signal: controller.signal }
-      )
-      .then((res) => {
+    const payload = { symbol, start_date: startDate, end_date: endDate, question };
+
+    (async () => {
+      try {
+        // Prefer AI analysis. If external AI is unavailable, fall back to local analysis.
+        let res;
+        try {
+          res = await axios.post<RangeAnalysis>('/api/analysis/range', payload, { signal: controller.signal });
+        } catch (aiErr) {
+          if (axios.isCancel(aiErr)) throw aiErr;
+          res = await axios.post<RangeAnalysis>('/api/analysis/range-local', payload, { signal: controller.signal });
+        }
+
         if (res.data.error) {
           setError(res.data.error);
         } else {
           setData(res.data);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!axios.isCancel(err)) {
           setError(t('rangeAnalysis.analysisFailed'));
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    })();
 
     return () => controller.abort();
   }, [symbol, startDate, endDate, question, t]);
