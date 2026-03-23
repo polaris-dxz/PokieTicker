@@ -16,4 +16,4 @@ version: 1.0.0
 
 调用时传入参数：`action`（必填，取上述能力之一），以及该 action 所需的 `symbol`、`date`、`start`、`end`、`window`、`full`、`batch_id` 等。后端默认地址为 `http://localhost:8000`，可在 OpenClaw Secrets 中配置 `POKIETICKER_BASE_URL`。
 
-示例：查 AAPL 在 2024-03-01 的历史相似交易日 → action=similar_days, symbol=AAPL, date=2024-03-01。
+示例：查 AAPL 在 2026-03-24 的历史相似交易日 → action=similar_days, symbol=AAPL, date=2026-03-24。
