@@ -4,6 +4,7 @@
 # Data directory (db, models, cache); .gitkeep is tracked
 .data/*
 !.data/.gitkeep
+!.data/pokieticker.db.gz
 
 # Legacy / root-level DB files
 *.db

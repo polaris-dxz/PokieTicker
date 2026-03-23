@@ -136,11 +136,14 @@ cp .env.example .env
 一键更新（推荐）：
 
 ```bash
-./update_data.sh           # 增量更新 OHLC + 新闻
+./update_data.sh           # 增量更新 OHLC + 新闻；成功后 gzip → .data/pokieticker.db.gz，并 git commit + push
+./update_data.sh --no-git  # 同上但不执行 git（适合 cron / 无 push 凭证）
 ./update_data.sh --full    # 全量拉取
 ./update_data.sh --layer1  # 增量 + 提交 Layer 1 Batch（终端会打印 batch_id，再执行 batch_collect）
 ./update_data.sh --full --layer1
 ```
+
+成功结束后会把数据库打成 **`.data/pokieticker.db.gz`**（仓库通过 `.gitignore` 的 `!.data/pokieticker.db.gz` 跟踪该文件）。默认会尝试提交并 `git push`；若当前目录不是 Git 仓库、或压缩包相对上次提交无变化，则会跳过相应步骤。
 
 或手动执行：
 
@@ -157,7 +160,7 @@ python -m server.batch_collect <batch_id>
 
 ```
 .env                          # API keys (gitignored)
-.data/                        # Data directory (db, models, cache; gitignored)
+.data/                        # Data directory (db, models, cache; 默认忽略，例外见 .gitignore 中的 pokieticker.db.gz)
 requirements.txt              # Python dependencies
 
 server/                       # Python package (API + pipeline + ML)
