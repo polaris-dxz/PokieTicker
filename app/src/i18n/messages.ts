@@ -76,7 +76,7 @@ const en = {
   'rangeNews.bearishSection': '▼ Bearish News ({count})',
   'rangeNews.showAll': 'Show all {count} articles',
   'rangeNews.hideAll': 'Hide all {count} articles',
-  'rangeNews.askBtn': 'Ask PokieTicker',
+  'rangeNews.askBtn': 'Ask XiZhi',
 
   'rangeAnalysis.title': 'Range Analysis',
   'rangeAnalysis.clear': 'Clear',
@@ -109,7 +109,7 @@ const en = {
   'similarDays.rsi': 'RSI {val}',
   'similarDays.after': 'After:',
 
-  'rangePopup.askLabel': 'Ask PokieTicker',
+  'rangePopup.askLabel': 'Ask XiZhi',
   'rangePopup.placeholder': 'Ask your own question...',
   'rangePopup.preset1': "What's driving the price movement?",
   'rangePopup.preset2': 'Summarize key news in this period',
@@ -203,7 +203,7 @@ const zh: Record<keyof typeof en, string> = {
   'rangeNews.bearishSection': '▼ 看空新闻（{count}）',
   'rangeNews.showAll': '显示全部 {count} 篇',
   'rangeNews.hideAll': '收起全部 {count} 篇',
-  'rangeNews.askBtn': '询问 PokieTicker',
+  'rangeNews.askBtn': '询问 XiZhi',
 
   'rangeAnalysis.title': '区间分析',
   'rangeAnalysis.clear': '清除',
@@ -236,7 +236,7 @@ const zh: Record<keyof typeof en, string> = {
   'similarDays.rsi': 'RSI {val}',
   'similarDays.after': '之后：',
 
-  'rangePopup.askLabel': '询问 PokieTicker',
+  'rangePopup.askLabel': '询问 XiZhi',
   'rangePopup.placeholder': '输入你的问题…',
   'rangePopup.preset1': '是什么在驱动这段行情？',
   'rangePopup.preset2': '概括该时段的关键新闻',
