@@ -93,8 +93,9 @@ Then open **http://localhost:7777/PokieTicker/** (if you used `--start`).
 git clone https://github.com/owengetinfo-design/PokieTicker.git
 cd PokieTicker
 
-# Unpack the pre-built database
+# Unpack the pre-built database and models
 gunzip -k pokieticker.db.gz
+tar xzf models.tar.gz -C backend/ml/
 
 # Backend (Python 3.10+) with uv
 uv venv && uv pip install -r requirements.txt

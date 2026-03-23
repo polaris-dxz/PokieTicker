@@ -8,7 +8,7 @@
 *.db-shm
 *.db.backup
 
-# ML models
+# ML models (models.tar.gz included in repo for quick start)
 *.joblib
 *.pkl
 *.pickle
