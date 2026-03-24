@@ -17,7 +17,10 @@ info()  { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 err()   { echo -e "${RED}[ERR]${NC} $1"; exit 1; }
 
-# 检查 .data 和 DB
+DB_PATH=".data/pokieticker.db"
+DB_GZ_PATH=".data/pokieticker.db.gz"
+
+# 检查 .data 和 DB（须在定义 DB_PATH 之后）
 [[ -f "$DB_PATH" ]] || err "未找到 $DB_PATH，请先运行 ./install.sh 完成安装与数据库准备。"
 
 # 可选参数
@@ -29,9 +32,6 @@ for arg in "$@"; do
   [[ "$arg" == "--layer1" ]]  && DO_LAYER1=true
   [[ "$arg" == "--no-git" ]]  && DO_GIT=false
 done
-
-DB_PATH=".data/pokieticker.db"
-DB_GZ_PATH=".data/pokieticker.db.gz"
 
 # 检查 Polygon API Key（拉数据必需）
 if ! grep -q "POLYGON_API_KEY=.\+" .env 2>/dev/null && [[ -z "$POLYGON_API_KEY" ]]; then
