@@ -12,6 +12,7 @@ import anthropic
 
 from server.config import settings
 from server.database import get_conn
+from server.anthropic_client import get_anthropic_client
 from server.pipeline.layer1 import (
     get_pending_articles, _build_batch_prompt, BATCH_SIZE, MODEL, MAX_OUTPUT_TOKENS
 )
@@ -74,7 +75,7 @@ def build_batch_requests(
 
 def submit_batch(requests_list: list, mapping: dict) -> str:
     """Submit to Anthropic Batch API and save mapping to database."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
 
     print(f"\nSubmitting {len(requests_list)} requests to Batch API...")
     batch = client.messages.batches.create(requests=requests_list)

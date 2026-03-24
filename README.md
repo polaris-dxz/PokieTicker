@@ -131,7 +131,8 @@ cp .env.example .env
 | Key | Where to get it | Cost |
 |-----|-----------------|------|
 | `POLYGON_API_KEY` | [polygon.io](https://polygon.io/) | Free tier |
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/) | Pay-as-you-go |
+| `ANTHROPIC_BASE_URL` | 默认 `https://api.apiyi.com`（[API易](https://apiyi.com) Anthropic 兼容网关，**不要**带 `/v1`）；官方填 `https://api.anthropic.com` | — |
+| `ANTHROPIC_API_KEY` | 与 `ANTHROPIC_BASE_URL` 对应：API易控制台或 [Anthropic Console](https://console.anthropic.com/) | 按服务商计费 |
 
 一键更新（推荐）：
 

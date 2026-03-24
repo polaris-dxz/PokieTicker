@@ -15,6 +15,7 @@ import anthropic
 
 from server.config import settings
 from server.database import get_conn
+from server.anthropic_client import get_anthropic_client
 
 MODEL = "claude-haiku-4-5-20251001"
 BATCH_SIZE = 50  # articles per API call
@@ -135,7 +136,7 @@ def process_batch_group(
     symbol: str, articles: List[Dict[str, Any]]
 ) -> Dict[str, int]:
     """Process a group of up to 50 articles in a single API call."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
     conn = get_conn()
 
     stats = {"processed": 0, "relevant": 0, "irrelevant": 0, "errors": 0}
@@ -237,7 +238,7 @@ def run_layer1(symbol: str, max_articles: int = 10000) -> Dict[str, Any]:
 
 def submit_batch_api(symbol: str, articles: List[Dict[str, Any]]) -> str:
     """Submit to Anthropic Batch API for async processing."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
 
     requests = []
     for i in range(0, len(articles), BATCH_SIZE):
@@ -271,7 +272,7 @@ def submit_batch_api(symbol: str, articles: List[Dict[str, Any]]) -> str:
 
 def check_batch_status(batch_id: str) -> Dict[str, Any]:
     """Check the status of a batch job."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
     batch = client.messages.batches.retrieve(batch_id)
 
     conn = get_conn()
@@ -297,7 +298,7 @@ def check_batch_status(batch_id: str) -> Dict[str, Any]:
 
 def collect_batch_results(batch_id: str) -> Dict[str, int]:
     """Collect results from a completed batch API job."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
     conn = get_conn()
 
     stats = {"processed": 0, "relevant": 0, "irrelevant": 0, "errors": 0}

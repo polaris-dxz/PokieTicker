@@ -5,6 +5,7 @@ Cost: ~$0.003/article, only on user click.
 """
 
 import json
+import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 
@@ -12,8 +13,28 @@ import anthropic
 
 from server.config import settings
 from server.database import get_conn
+from server.anthropic_client import (
+    auth_error_hint,
+    format_anthropic_error,
+    get_anthropic_client,
+    upstream_http_status,
+)
 
-MODEL = "claude-sonnet-4-5-20250929"
+logger = logging.getLogger(__name__)
+
+def _layer2_model() -> str:
+    return (settings.anthropic_model_sonnet or "claude-sonnet-4-6").strip()
+
+
+def _extract_text_from_message(message: Any) -> str:
+    """Collect text from all text blocks (Anthropic may return multiple blocks)."""
+    content = getattr(message, "content", None) or []
+    parts: List[str] = []
+    for block in content:
+        text = getattr(block, "text", None)
+        if text:
+            parts.append(text)
+    return "".join(parts)
 
 
 def get_cached(news_id: str, symbol: str) -> Optional[Dict[str, Any]]:
@@ -30,10 +51,19 @@ def get_cached(news_id: str, symbol: str) -> Optional[Dict[str, Any]]:
 
 
 def analyze_article(news_id: str, symbol: str) -> Dict[str, Any]:
-    """Run deep Sonnet analysis on a single article. Returns cached if available."""
+    """Run deep Sonnet analysis on a single article. Returns cached if available.
+
+    On failure returns a dict with ``error`` and optional ``http_status`` (for the router).
+    """
     cached = get_cached(news_id, symbol)
     if cached:
-        return cached
+        return {
+            "news_id": cached["news_id"],
+            "symbol": cached["symbol"],
+            "discussion": cached.get("discussion") or "",
+            "growth_reasons": cached.get("growth_reasons") or "",
+            "decrease_reasons": cached.get("decrease_reasons") or "",
+        }
 
     # Fetch article data
     conn = get_conn()
@@ -44,9 +74,14 @@ def analyze_article(news_id: str, symbol: str) -> Dict[str, Any]:
     conn.close()
 
     if not article:
-        return {"error": "Article not found"}
+        return {"error": "Article not found", "http_status": 404}
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    api_key = (settings.anthropic_api_key or "").strip()
+    if not api_key:
+        return {
+            "error": "Anthropic API key is not configured (set ANTHROPIC_API_KEY in .env)",
+            "http_status": 503,
+        }
 
     prompt = f"""You are a senior financial analyst. Provide a deep analysis of this news article's impact on {symbol} stock.
 
@@ -63,13 +98,38 @@ Provide your analysis as JSON:
 
 Respond with JSON only."""
 
-    message = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    try:
+        client = get_anthropic_client()
+        message = client.messages.create(
+            model=_layer2_model(),
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+    except anthropic.APIError as e:
+        detail = format_anthropic_error(e)
+        code = upstream_http_status(e)
+        hint = auth_error_hint(code)
+        logger.warning("Anthropic API error in deep analysis: %s", detail)
+        return {
+            "error": f"Anthropic API error: {detail}{hint}",
+            "http_status": code or 502,
+        }
+    except Exception as e:
+        detail = format_anthropic_error(e)
+        code = upstream_http_status(e)
+        logger.exception("Unexpected error calling Anthropic for deep analysis: %s", detail)
+        return {
+            "error": f"Failed to call AI service: {detail}{auth_error_hint(code)}",
+            "http_status": code or 502,
+        }
 
-    text = message.content[0].text if message.content else ""
+    text = _extract_text_from_message(message)
+    if not text.strip():
+        return {
+            "error": "AI returned an empty response. Try again or check the model name / API access.",
+            "http_status": 502,
+        }
+
     try:
         start = text.find("{")
         end = text.rfind("}") + 1
@@ -79,20 +139,25 @@ Respond with JSON only."""
 
     # Cache result
     conn = get_conn()
-    conn.execute(
-        """INSERT OR REPLACE INTO layer2_results
-           (news_id, symbol, discussion, growth_reasons, decrease_reasons, created_at)
-           VALUES (?, ?, ?, ?, ?, ?)""",
-        (
-            news_id,
-            symbol,
-            parsed.get("discussion", ""),
-            parsed.get("growth_reasons", ""),
-            parsed.get("decrease_reasons", ""),
-            datetime.now(timezone.utc).isoformat(),
-        ),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            """INSERT OR REPLACE INTO layer2_results
+               (news_id, symbol, discussion, growth_reasons, decrease_reasons, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                news_id,
+                symbol,
+                parsed.get("discussion", ""),
+                parsed.get("growth_reasons", ""),
+                parsed.get("decrease_reasons", ""),
+                datetime.now(timezone.utc).isoformat(),
+            ),
+        )
+        conn.commit()
+    except Exception as e:
+        logger.exception("Failed to cache layer2 result")
+        conn.close()
+        return {"error": f"Failed to save analysis: {e}", "http_status": 500}
     conn.close()
 
     return {
@@ -106,10 +171,10 @@ Respond with JSON only."""
 
 def generate_story(symbol: str, csv_content: str) -> str:
     """Generate an AI story about stock price movements. Port from app.py."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
 
     message = client.messages.create(
-        model=MODEL,
+        model=_layer2_model(),
         max_tokens=4096,
         messages=[
             {
@@ -137,7 +202,7 @@ Write in English, approximately 500-1000 words, with vivid and narrative languag
         ],
     )
 
-    return message.content[0].text if message.content else ""
+    return _extract_text_from_message(message)
 
 
 def analyze_range(symbol: str, start_date: str, end_date: str, question: Optional[str] = None) -> Dict[str, Any]:
@@ -191,7 +256,7 @@ def analyze_range(symbol: str, start_date: str, end_date: str, question: Optiona
     # Build OHLC summary
     ohlc_summary = f"Open: ${open_price:.2f}, Close: ${close_price:.2f}, High: ${high_price:.2f}, Low: ${low_price:.2f}, Change: {price_change_pct:+.2f}%, Trading days: {len(ohlc_rows)}"
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
 
     question_part = f"The user's specific question is: {question}. Please focus on answering this question in your analysis.\n\n" if question else ""
 
@@ -215,12 +280,12 @@ Related news during this period ({news_count} articles):
 Return JSON only."""
 
     message = client.messages.create(
-        model=MODEL,
+        model=_layer2_model(),
         max_tokens=2048,
         messages=[{"role": "user", "content": prompt}],
     )
 
-    text = message.content[0].text if message.content else ""
+    text = _extract_text_from_message(message)
     try:
         start_idx = text.find("{")
         end_idx = text.rfind("}") + 1

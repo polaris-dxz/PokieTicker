@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -5,11 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 
-from server.config import PROJECT_ROOT
+from server.config import PROJECT_ROOT, resolved_env_file_path, settings
 from server.database import init_db
 from server.api.routers import stocks, news, analysis, predict, pipeline
 
 app = FastAPI(title="PokieTicker", version="1.0.0")
+
+logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +32,26 @@ app.include_router(pipeline.router, prefix="/api/pipeline", tags=["pipeline"])
 @app.on_event("startup")
 def startup():
     init_db()
+    env_path = resolved_env_file_path()
+    key = (settings.anthropic_api_key or "").strip()
+    if key:
+        logger.info(
+            "PokieTicker: PROJECT_ROOT=%s env_file=%s exists=%s anthropic_base_url=%s key_len=%s key_tail=%s",
+            PROJECT_ROOT,
+            env_path,
+            env_path.is_file(),
+            (settings.anthropic_base_url or "").strip(),
+            len(key),
+            key[-4:] if len(key) >= 4 else "?",
+        )
+    else:
+        logger.warning(
+            "PokieTicker: ANTHROPIC_API_KEY 为空; 若已在 .env 中配置仍无效，请检查 shell 是否 export 了同名变量（会覆盖 .env）。"
+            " PROJECT_ROOT=%s env_file=%s exists=%s",
+            PROJECT_ROOT,
+            env_path,
+            env_path.is_file(),
+        )
 
 
 @app.get("/api/health")

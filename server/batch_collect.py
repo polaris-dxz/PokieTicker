@@ -11,11 +11,12 @@ import anthropic
 
 from server.config import settings
 from server.database import get_conn
+from server.anthropic_client import get_anthropic_client
 
 
 def check_status(batch_id: str) -> dict:
     """Check batch status."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
     batch = client.messages.batches.retrieve(batch_id)
 
     conn = get_conn()
@@ -38,7 +39,7 @@ def check_status(batch_id: str) -> dict:
 
 def collect_results(batch_id: str) -> dict:
     """Collect results from a completed batch."""
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = get_anthropic_client()
     conn = get_conn()
 
     # Load mapping

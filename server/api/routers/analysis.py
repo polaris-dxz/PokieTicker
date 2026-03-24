@@ -37,7 +37,12 @@ class StoryRequest(BaseModel):
 @router.post("/deep")
 def deep_analysis(req: DeepAnalysisRequest):
     """Trigger Layer 2 deep analysis for a single article."""
-    return analyze_article(req.news_id, req.symbol.upper())
+    result = analyze_article(req.news_id, req.symbol.upper())
+    err = result.get("error")
+    if err:
+        status = int(result.get("http_status", 503))
+        raise HTTPException(status_code=status, detail=err)
+    return result
 
 
 @router.post("/story")
